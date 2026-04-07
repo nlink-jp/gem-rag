@@ -1,0 +1,23 @@
+# Build artifacts
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# Credentials
+.env
+
+# Test / lint cache
+.pytest_cache/
+.ruff_cache/
+
+# DuckDB databases
+*.db
+
+# macOS
+.DS_Store
