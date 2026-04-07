@@ -75,6 +75,9 @@ make lint     # リンター実行
 
 ## ドキュメント
 
+- [データベーススキーマ](docs/ja/database-schema.md) — DuckDB テーブル、ベクトル検索、冪等性
+- [チャンキングアーキテクチャ](docs/ja/chunking-architecture.md) — 見出し認識分割、トークン推定、日英文境界
+- [クロス言語検索](docs/ja/cross-language-search.md) — JA/EN クエリリライト、並行検索、結果マージ
 - [English documentation](README.md)
 
 ## ライセンス

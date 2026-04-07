@@ -75,6 +75,9 @@ make lint     # Run linter
 
 ## Documentation
 
+- [Database Schema](docs/en/database-schema.md) — DuckDB tables, vector search, idempotency
+- [Chunking Architecture](docs/en/chunking-architecture.md) — heading-aware splitting, token estimation, JP/EN boundaries
+- [Cross-Language Search](docs/en/cross-language-search.md) — JA/EN query rewriting, parallel search, result merging
 - [日本語ドキュメント](README.ja.md)
 
 ## License
