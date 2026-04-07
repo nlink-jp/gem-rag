@@ -5,8 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-04-08
 
 ### Added
 
-- Project scaffold
+- `index` command: index Markdown files with heading-aware chunking and Gemini embeddings
+  - Recursive directory walking for *.md files
+  - SHA-256 file hash idempotency (unchanged files skipped)
+  - JP/EN sentence boundary detection for chunk splitting
+  - Hierarchical heading path preservation
+- `ask` command: question answering with vector search and streamed Gemini responses
+  - DuckDB cosine similarity search with adjacent chunk context expansion
+  - Nonce-tagged XML wrapping for prompt injection defense (collision-avoidant 128-bit nonces)
+  - `--json` flag for structured output with source attribution
+- `docs` command group: list, show, delete indexed documents
+- `reindex` command: re-embed documents after embedding model change
+- Text normalization: NFKC, fullwidth→halfwidth, markdown stripping, JP/EN token estimation
+- DuckDB storage with native `list_cosine_similarity()` vector search
+- Gemini LLM client with exponential backoff retry on rate limits
+- Gemini embedder with task_type support (RETRIEVAL_DOCUMENT / RETRIEVAL_QUERY)
+- Configuration via `GEM_RAG_*` environment variables with `.env` file support
+
+### Security
+
+- Nonce-tagged XML wrapping for all document content and user queries in LLM prompts
+- Collision-avoidant nonce generation (verified not present in input text)
+- 14-pattern prompt injection detection with warning logs
+- Embedding model isolation in vector search (prevents cross-model contamination)
