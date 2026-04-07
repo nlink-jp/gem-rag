@@ -1,11 +1,16 @@
-"""Retriever: vector search, context expansion, span merging."""
+"""Retriever: vector search, context expansion, span merging, query rewriting."""
 
 from __future__ import annotations
 
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 from gem_rag.database import Database, ScoredChunk
 from gem_rag.llm.embedder import GeminiEmbedder
+from gem_rag.rewriter import QueryRewriter
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -29,30 +34,63 @@ class Retriever:
         *,
         top_k: int = 5,
         context_window: int = 1,
+        rewriter: QueryRewriter | None = None,
     ) -> None:
         self._db = db
         self._embedder = embedder
         self._top_k = top_k
         self._context_window = context_window
+        self._rewriter = rewriter
 
     def retrieve(self, query: str) -> list[Passage]:
         """Retrieve relevant passages for a query."""
-        query_embedding = self._embedder.embed_query(query)
+        hits = self._search(query)
 
-        hits = self._db.similar_chunks(
-            query_embedding,
-            self._embedder.model_name,
-            top_k=self._top_k,
-        )
+        if not hits:
+            return []
 
-        if not hits or self._context_window <= 0:
+        if self._context_window <= 0:
             return [_hit_to_passage(h) for h in hits]
 
         return self._expand_context(hits)
 
+    def _search(self, query: str) -> list[ScoredChunk]:
+        """Search with optional query rewriting for cross-language retrieval."""
+        queries = [query]
+        if self._rewriter:
+            variants = self._rewriter.rewrite(query)
+            queries.extend(variants)
+
+        # Parallel embedding and search for all query variants
+        all_hits: list[ScoredChunk] = []
+        with ThreadPoolExecutor(max_workers=len(queries)) as pool:
+            futures = {
+                pool.submit(self._embed_and_search, q): q
+                for q in queries
+            }
+            for future in as_completed(futures):
+                try:
+                    hits = future.result()
+                    all_hits = _merge_hits(all_hits, hits)
+                except Exception as e:
+                    q = futures[future]
+                    logger.warning("Search failed for variant %r: %s", q, e)
+
+        # Sort by score and limit to top_k
+        all_hits.sort(key=lambda h: h.score, reverse=True)
+        return all_hits[: self._top_k]
+
+    def _embed_and_search(self, query: str) -> list[ScoredChunk]:
+        """Embed a single query and search."""
+        embedding = self._embedder.embed_query(query)
+        return self._db.similar_chunks(
+            embedding,
+            self._embedder.model_name,
+            top_k=self._top_k,
+        )
+
     def _expand_context(self, hits: list[ScoredChunk]) -> list[Passage]:
         """Expand hits with adjacent chunks, merge overlapping spans."""
-        # Group by document
         doc_spans: dict[str, list[_Span]] = {}
         for hit in hits:
             spans = doc_spans.setdefault(hit.document_id, [])
@@ -60,7 +98,6 @@ class Retriever:
             hi = hit.chunk_index + self._context_window
             spans.append(_Span(lo=lo, hi=hi, score=hit.score, heading_path=hit.heading_path, file_path=hit.file_path))
 
-        # Merge overlapping spans per document
         passages: list[Passage] = []
         for doc_id, spans in doc_spans.items():
             merged = _merge_spans(spans)
@@ -96,7 +133,7 @@ def _merge_spans(spans: list[_Span]) -> list[_Span]:
     merged: list[_Span] = [sorted_spans[0]]
     for s in sorted_spans[1:]:
         last = merged[-1]
-        if s.lo <= last.hi + 1:  # adjacent or overlapping
+        if s.lo <= last.hi + 1:
             last.hi = max(last.hi, s.hi)
             if s.score > last.score:
                 last.score = s.score
@@ -104,6 +141,19 @@ def _merge_spans(spans: list[_Span]) -> list[_Span]:
         else:
             merged.append(s)
     return merged
+
+
+def _merge_hits(a: list[ScoredChunk], b: list[ScoredChunk]) -> list[ScoredChunk]:
+    """Merge two hit lists, deduplicating by chunk ID and keeping max score."""
+    if not b:
+        return a
+    seen: dict[str, ScoredChunk] = {}
+    for h in a:
+        seen[h.id] = h
+    for h in b:
+        if h.id not in seen or h.score > seen[h.id].score:
+            seen[h.id] = h
+    return list(seen.values())
 
 
 def _hit_to_passage(hit: ScoredChunk) -> Passage:

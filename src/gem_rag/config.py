@@ -23,6 +23,7 @@ class GemRagConfig(BaseSettings):
     context_window: int = Field(default=1, description="Adjacent chunks to expand (0=disabled)")
     chunk_size: int = Field(default=512, description="Target chunk size in tokens")
     chunk_overlap: int = Field(default=64, description="Overlap tokens between chunks")
+    query_rewrite: bool = Field(default=True, description="Enable JA/EN query rewriting for cross-language search")
 
     model_config = {"env_prefix": "GEM_RAG_", "env_file": ".env", "extra": "ignore"}
 

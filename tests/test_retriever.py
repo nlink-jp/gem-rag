@@ -3,7 +3,8 @@
 from unittest.mock import MagicMock
 
 from gem_rag.database import Database
-from gem_rag.retriever import Retriever, _merge_spans, _Span
+from gem_rag.retriever import Retriever, _merge_hits, _merge_spans, _Span
+from gem_rag.database import ScoredChunk
 
 
 def _seed_db(db: Database) -> None:
@@ -91,3 +92,37 @@ class TestMergeSpans:
 
     def test_empty(self) -> None:
         assert _merge_spans([]) == []
+
+
+class TestMergeHits:
+    def test_dedup_by_id(self) -> None:
+        a = [ScoredChunk("c1", "d1", 0, "", "text", 0.8, "/a.md")]
+        b = [ScoredChunk("c1", "d1", 0, "", "text", 0.9, "/a.md")]
+        merged = _merge_hits(a, b)
+        assert len(merged) == 1
+        assert merged[0].score == 0.9  # max score kept
+
+    def test_union(self) -> None:
+        a = [ScoredChunk("c1", "d1", 0, "", "text1", 0.8, "/a.md")]
+        b = [ScoredChunk("c2", "d1", 1, "", "text2", 0.7, "/a.md")]
+        merged = _merge_hits(a, b)
+        assert len(merged) == 2
+
+
+class TestRetrieverWithRewriter:
+    def test_rewriter_expands_search(self) -> None:
+        db = Database(":memory:")
+        _seed_db(db)
+
+        rewriter = MagicMock()
+        rewriter.rewrite.return_value = ["variant JA", "variant EN"]
+
+        embedder = _mock_embedder()
+        retriever = Retriever(db, embedder, top_k=3, context_window=0, rewriter=rewriter)
+        passages = retriever.retrieve("query")
+
+        # Rewriter should have been called
+        rewriter.rewrite.assert_called_once_with("query")
+        # Should still return results (embedding mock returns same vector for all)
+        assert len(passages) >= 1
+        db.close()

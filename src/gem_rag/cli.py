@@ -17,6 +17,7 @@ from gem_rag.indexer import Indexer
 from gem_rag.llm.client import GeminiClient
 from gem_rag.llm.embedder import GeminiEmbedder
 from gem_rag.retriever import Retriever
+from gem_rag.rewriter import QueryRewriter
 from gem_rag.sanitizer import generate_nonce_not_in
 
 err = Console(stderr=True)
@@ -79,8 +80,9 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
 
     db = Database(config.db_path)
     embedder = GeminiEmbedder(config)
-    retriever = Retriever(db, embedder, top_k=config.top_k, context_window=config.context_window)
     client = GeminiClient(config)
+    rewriter = QueryRewriter(client) if config.query_rewrite else None
+    retriever = Retriever(db, embedder, top_k=config.top_k, context_window=config.context_window, rewriter=rewriter)
 
     with err.status("[bold blue]Searching..."):
         passages = retriever.retrieve(question)
