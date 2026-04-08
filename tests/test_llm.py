@@ -107,3 +107,26 @@ class TestGeminiEmbedder:
         config = GemRagConfig(project="test", embedding_model="custom-model")
         embedder = GeminiEmbedder(config)
         assert embedder.model_name == "custom-model"
+
+    @patch("gem_rag.llm.embedder.genai.Client")
+    def test_embed_splits_into_batches(self, mock_cls: MagicMock) -> None:
+        """Inputs exceeding 250 must be split into multiple API calls."""
+        def make_response(**kwargs: object) -> MagicMock:
+            contents = kwargs["contents"]
+            resp = MagicMock()
+            resp.embeddings = [MagicMock(values=[float(i)]) for i in range(len(contents))]
+            return resp
+
+        mock_cls.return_value.models.embed_content.side_effect = make_response
+
+        config = GemRagConfig(project="test")
+        embedder = GeminiEmbedder(config)
+        texts = ["t"] * 300  # exceeds 250 limit
+        result = embedder.embed(texts)
+
+        assert len(result) == 300
+        assert mock_cls.return_value.models.embed_content.call_count == 2
+        # First batch: 250, second batch: 50
+        calls = mock_cls.return_value.models.embed_content.call_args_list
+        assert len(calls[0].kwargs["contents"]) == 250
+        assert len(calls[1].kwargs["contents"]) == 50

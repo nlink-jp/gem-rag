@@ -11,6 +11,9 @@ from gem_rag.config import GemRagConfig
 
 logger = logging.getLogger(__name__)
 
+# Vertex AI allows at most 250 instances per embed_content request.
+_EMBED_BATCH_SIZE = 250
+
 
 class GeminiEmbedder:
     """Embed text using Vertex AI Gemini embedding models."""
@@ -33,13 +36,17 @@ class GeminiEmbedder:
         *,
         task_type: str = "RETRIEVAL_DOCUMENT",
     ) -> list[list[float]]:
-        """Embed a batch of texts.
+        """Embed a batch of texts, splitting into API-sized batches automatically.
 
         Args:
             texts: Texts to embed.
             task_type: "RETRIEVAL_DOCUMENT" for indexing, "RETRIEVAL_QUERY" for search.
         """
-        return self._embed_with_retry(texts, task_type=task_type)
+        results: list[list[float]] = []
+        for i in range(0, len(texts), _EMBED_BATCH_SIZE):
+            batch = texts[i : i + _EMBED_BATCH_SIZE]
+            results.extend(self._embed_with_retry(batch, task_type=task_type))
+        return results
 
     def embed_query(self, query: str) -> list[float]:
         """Embed a single query for retrieval."""
