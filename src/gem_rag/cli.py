@@ -23,6 +23,22 @@ from gem_rag.sanitizer import generate_nonce_not_in
 err = Console(stderr=True)
 
 
+def _dedup_sources(passages: list) -> list[tuple[str, str, float]]:
+    """Deduplicate passages by file path, keeping the highest score per file.
+
+    Returns a list of (file_path, heading_path, score) tuples in first-seen order.
+    """
+    best: dict[str, tuple[str, float]] = {}  # file_path -> (heading_path, score)
+    order: list[str] = []
+    for p in passages:
+        if p.file_path not in best:
+            order.append(p.file_path)
+            best[p.file_path] = (p.heading_path, p.score)
+        elif p.score > best[p.file_path][1]:
+            best[p.file_path] = (p.heading_path, p.score)
+    return [(fp, best[fp][0], best[fp][1]) for fp in order]
+
+
 @click.group()
 @click.version_option(version=__version__, prog_name="gem-rag")
 def main() -> None:
@@ -92,6 +108,10 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
         db.close()
         return
 
+    top_score = passages[0].score
+    if top_score < 0.60:
+        err.print(f"[yellow]⚠ Low relevance (top score: {top_score:.3f}) — answer may not reflect the documents.[/yellow]")
+
     # Build nonce-tagged prompt
     all_text = question + "".join(p.content for p in passages)
     nonce = generate_nonce_not_in(all_text)
@@ -117,12 +137,15 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
         f"<query-{nonce}>\n{question}\n</query-{nonce}>"
     )
 
+    # Deduplicate sources by file path, keeping the highest score per file.
+    deduped_sources = _dedup_sources(passages)
+
     if json_output:
         with err.status("[bold blue]Generating answer..."):
             answer = client.complete_text(system_prompt, user_prompt)
         sources = [
-            {"file_path": p.file_path, "heading_path": p.heading_path, "score": round(p.score, 4)}
-            for p in passages
+            {"file_path": fp, "heading_path": hp, "score": round(sc, 4)}
+            for fp, hp, sc in deduped_sources
         ]
         click.echo(json.dumps({"answer": answer, "sources": sources}, ensure_ascii=False, indent=2))
     else:
@@ -133,8 +156,11 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
         sys.stdout.write("\n\n")
 
         err.print("[bold]Sources:[/bold]")
-        for p in passages:
-            err.print(f"  {p.file_path} ({p.heading_path}) [score: {p.score:.3f}]")
+        for i, (fp, hp, sc) in enumerate(deduped_sources, 1):
+            if hp:
+                err.print(f"  **Source {i}:** {fp} — {hp} (score: {sc:.3f})")
+            else:
+                err.print(f"  **Source {i}:** {fp} (score: {sc:.3f})")
 
     db.close()
 
