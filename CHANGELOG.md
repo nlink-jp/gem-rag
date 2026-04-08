@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-04-08
+
+### Added
+
+- Low relevance warning: when the top search score is below 0.60, `ask` now
+  prints a warning before generating the answer (mirrors lite-rag behaviour)
+- Source deduplication: `ask` deduplicates retrieved passages by file path,
+  keeping the highest-scoring passage per file in both text and JSON output
+
 ## [0.2.0] - 2026-04-08
 
 ### Added
