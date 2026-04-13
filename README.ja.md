@@ -35,6 +35,30 @@ uv tool install gem-rag
 
 ## 設定
 
+設定は以下の優先順位で解決されます:
+
+1. **CLI フラグ**（最優先）
+2. **環境変数** (`GEM_RAG_*`)
+3. **`.env` ファイル**（カレントディレクトリ）
+4. **設定ファイル** (`~/.config/gem-rag/config.toml`)
+5. **デフォルト値**（最低優先）
+
+### 設定ファイル
+
+`~/.config/gem-rag/config.toml` を作成:
+
+```toml
+project = "your-gcp-project-id"
+location = "us-central1"
+chat_model = "gemini-2.5-flash"
+embedding_model = "text-embedding-005"
+db_path = "./gem-rag.db"
+```
+
+完全な例は [`config.example.toml`](config.example.toml) を参照してください。
+
+### 環境変数
+
 環境変数を設定（または `.env` ファイルを作成）:
 
 ```bash

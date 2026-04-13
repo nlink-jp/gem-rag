@@ -1,0 +1,14 @@
+[gcp]
+project  = "your-project-id"
+location = "us-central1"
+
+[model]
+chat_model      = "gemini-2.5-flash"
+embedding_model = "text-embedding-005"
+
+# db_path = "./gem-rag.db"
+# top_k = 5
+# context_window = 1
+# chunk_size = 512
+# chunk_overlap = 64
+# query_rewrite = true

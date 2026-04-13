@@ -35,6 +35,30 @@ uv tool install gem-rag
 
 ## Configuration
 
+Configuration is resolved in the following priority order:
+
+1. **CLI flags** (highest priority)
+2. **Environment variables** (`GEM_RAG_*`)
+3. **`.env` file** (in current directory)
+4. **Config file** (`~/.config/gem-rag/config.toml`)
+5. **Defaults** (lowest priority)
+
+### Config file setup
+
+Create `~/.config/gem-rag/config.toml`:
+
+```toml
+project = "your-gcp-project-id"
+location = "us-central1"
+chat_model = "gemini-2.5-flash"
+embedding_model = "text-embedding-005"
+db_path = "./gem-rag.db"
+```
+
+See [`config.example.toml`](config.example.toml) for a full example.
+
+### Environment variables
+
 Set environment variables (or create a `.env` file):
 
 ```bash
