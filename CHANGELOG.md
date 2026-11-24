@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- `make test` and `make lint` run with the `dev` extra, so they work on a
+  fresh `uv sync` without installing pytest or ruff separately. The existing
+  lint and format violations are cleared; `make lint` now passes.
+
 ## [0.5.0] - 2026-11-24
 
 ### Security
