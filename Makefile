@@ -6,6 +6,7 @@ test:
 lint:
 	uv run --extra dev ruff check src/ tests/
 	uv run --extra dev ruff format --check src/ tests/
+	uv run --extra dev pyright
 
 build:
 	uv build --out-dir dist/

@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `make test` and `make lint` run with the `dev` extra, so they work on a
   fresh `uv sync` without installing pytest or ruff separately. The existing
   lint and format violations are cleared; `make lint` now passes.
+- `make lint` also runs pyright (configured in `pyproject.toml` but never
+  run before); its existing errors are cleared.
 
 ## [0.5.0] - 2026-11-24
 

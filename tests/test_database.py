@@ -1,12 +1,14 @@
 """Tests for DuckDB database layer."""
 
+from collections.abc import Iterator
+
 import pytest
 
 from gem_rag.database import Database, make_chunk_id, make_document_id
 
 
 @pytest.fixture
-def db() -> Database:
+def db() -> Iterator[Database]:
     d = Database(":memory:")
     yield d
     d.close()

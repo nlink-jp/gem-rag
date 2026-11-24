@@ -74,7 +74,7 @@ class GemRagConfig(BaseSettings):
 
 def get_config(**overrides: str | int) -> GemRagConfig:
     """Load config with CLI overrides. Empty strings and None are ignored."""
-    filtered = {k: v for k, v in overrides.items() if v is not None and v != ""}
+    filtered: dict[str, Any] = {k: v for k, v in overrides.items() if v is not None and v != ""}
     config = GemRagConfig(**filtered)
     if not config.project:
         raise ValueError("GCP project ID is required. Set GEM_RAG_PROJECT environment variable or pass --project.")
