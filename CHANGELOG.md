@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The embedder now rejects a response that does not carry exactly one
+  non-empty vector per input text. Before, a short response would have
+  dropped the unpaired chunks while the document was still recorded as
+  indexed, so a later `index` would not have repaired it.
+
 ### Changed
 
 - `make test` and `make lint` run with the `dev` extra, so they work on a

@@ -76,6 +76,28 @@ class TestGeminiEmbedder:
         result = embedder.embed(["text1", "text2"])
         assert result == [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
 
+    @pytest.mark.parametrize(
+        "embeddings",
+        [
+            None,
+            [MagicMock(values=[0.1])],
+            [MagicMock(values=[0.1]), MagicMock(values=None)],
+            [MagicMock(values=[0.1]), MagicMock(values=[])],
+        ],
+        ids=["no-list", "too-few", "none-vector", "empty-vector"],
+    )
+    @patch("gem_rag.llm.embedder.genai.Client")
+    def test_malformed_response_raises(self, mock_cls: MagicMock, embeddings: list[MagicMock] | None) -> None:
+        """A response that is not one non-empty vector per text must not reach the indexer."""
+        mock_response = MagicMock()
+        mock_response.embeddings = embeddings
+        mock_cls.return_value.models.embed_content.return_value = mock_response
+
+        embedder = GeminiEmbedder(GemRagConfig(project="test"))
+        with pytest.raises(ValueError, match="embedding API returned"):
+            embedder.embed(["text1", "text2"])
+        assert mock_cls.return_value.models.embed_content.call_count == 1
+
     @patch("gem_rag.llm.embedder.genai.Client")
     def test_embed_query(self, mock_cls: MagicMock) -> None:
         emb = MagicMock()
@@ -114,6 +136,7 @@ class TestGeminiEmbedder:
 
         def make_response(**kwargs: object) -> MagicMock:
             contents = kwargs["contents"]
+            assert isinstance(contents, list)
             resp = MagicMock()
             resp.embeddings = [MagicMock(values=[float(i)]) for i in range(len(contents))]
             return resp

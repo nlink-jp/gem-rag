@@ -6,6 +6,7 @@ import logging
 import time
 
 from google import genai
+from google.genai import types
 
 from gem_rag.config import GemRagConfig
 
@@ -70,7 +71,6 @@ class GeminiEmbedder:
                     contents=texts,
                     config={"task_type": task_type},
                 )
-                return [e.values for e in response.embeddings]
             except Exception as e:
                 error_str = str(e).lower()
                 is_retryable = any(
@@ -88,5 +88,25 @@ class GeminiEmbedder:
                     e,
                 )
                 time.sleep(delay)
+            else:
+                return _vectors(response.embeddings, len(texts))
 
         raise last_error  # type: ignore[misc]
+
+
+def _vectors(embeddings: list[types.ContentEmbedding] | None, expected: int) -> list[list[float]]:
+    """Return one vector per input text, or raise if the response does not have exactly that.
+
+    The SDK types both the list and each vector as optional. The indexer pairs
+    chunks with vectors positionally, so a short or partly empty response would
+    drop chunks while the document is still recorded as indexed.
+    """
+    if embeddings is None or len(embeddings) != expected:
+        got = 0 if embeddings is None else len(embeddings)
+        raise ValueError(f"embedding API returned {got} vectors for {expected} texts")
+    vectors: list[list[float]] = []
+    for i, e in enumerate(embeddings):
+        if not e.values:
+            raise ValueError(f"embedding API returned an empty vector for text {i}")
+        vectors.append(e.values)
+    return vectors
