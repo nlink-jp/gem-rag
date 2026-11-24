@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-24
+
+### Security
+
+- **CVE-2026-111497 is fixed** (the out-of-bounds write in the Brotli decoder
+  that DuckDB's parquet extension bundles). The `duckdb` dependency moves from
+  `>=1.0,<2.0` (1.5.1 in the lock file) to `>=2.0.1,<3.0`: DuckDB v2.0.1 carries
+  the upstream decoder fix (duckdb/duckdb#27791), and the 1.5 line has not
+  received it. gem-rag runs only its own fixed SQL and never reads Parquet, so
+  the decoder was linked but not reached.
+
+### Changed
+
+- **An index created by this release does not open in older versions.** DuckDB
+  2.0 writes a storage format DuckDB 1.x cannot read, so a new index database
+  does not open in gem-rag 0.4.x. Indexes created earlier keep working here and
+  stay readable by 0.4.x after this release has written to them (measured with
+  DuckDB 1.5.1 and 2.0.1).
+
+### Fixed
+
+- **The tests no longer read the operator's own configuration.** They picked up
+  `~/.config/gem-rag/config.toml`, `GEM_RAG_*` environment variables and a
+  `.env` in the current directory, so two configuration tests failed on a
+  machine with a config file. A shared fixture now gives every test an empty
+  home and working directory; new tests cover reading `config.toml` and an
+  environment variable overriding it.
+
 ## [0.4.1] - 2026-04-14
 
 ### Added
