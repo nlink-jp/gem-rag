@@ -3,6 +3,10 @@
 gem-rag uses DuckDB as a single-file embedded database for document metadata,
 chunk content, and embedding vectors.
 
+The database is written by DuckDB 2.0. A database created by gem-rag 0.5.0 or
+later does not open in gem-rag 0.4.x (DuckDB 1.x); one created by 0.4.x keeps
+working and stays readable by 0.4.x.
+
 ## Tables
 
 ### `documents`
