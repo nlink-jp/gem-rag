@@ -1,5 +1,7 @@
 """Tests for gem-rag configuration."""
 
+from pathlib import Path
+
 import pytest
 
 from gem_rag.config import GemRagConfig, get_config
@@ -26,6 +28,21 @@ class TestGemRagConfig:
         assert config.project == "env-project"
         assert config.location == "asia-northeast1"
         assert config.top_k == 10
+
+    def test_from_config_toml(self, isolate_config_sources: Path) -> None:
+        cfg = isolate_config_sources / ".config" / "gem-rag" / "config.toml"
+        cfg.parent.mkdir(parents=True)
+        cfg.write_text('[gcp]\nproject = "toml-project"\nlocation = "global"\n', encoding="utf-8")
+        config = GemRagConfig()
+        assert config.project == "toml-project"
+        assert config.location == "global"
+
+    def test_env_overrides_config_toml(self, isolate_config_sources: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        cfg = isolate_config_sources / ".config" / "gem-rag" / "config.toml"
+        cfg.parent.mkdir(parents=True)
+        cfg.write_text('[gcp]\nlocation = "global"\n', encoding="utf-8")
+        monkeypatch.setenv("GEM_RAG_LOCATION", "asia-northeast1")
+        assert GemRagConfig().location == "asia-northeast1"
 
 
 class TestGetConfig:
