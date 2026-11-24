@@ -74,8 +74,7 @@ class GeminiEmbedder:
             except Exception as e:
                 error_str = str(e).lower()
                 is_retryable = any(
-                    keyword in error_str
-                    for keyword in ("429", "resource_exhausted", "rate limit", "quota")
+                    keyword in error_str for keyword in ("429", "resource_exhausted", "rate limit", "quota")
                 )
                 if not is_retryable or attempt == max_retries:
                     raise
@@ -83,7 +82,10 @@ class GeminiEmbedder:
                 delay = base_delay * (2**attempt)
                 logger.warning(
                     "Embedding API rate limited (attempt %d/%d), retrying in %.1fs: %s",
-                    attempt + 1, max_retries + 1, delay, e,
+                    attempt + 1,
+                    max_retries + 1,
+                    delay,
+                    e,
                 )
                 time.sleep(delay)
 

@@ -2,9 +2,8 @@
 
 from unittest.mock import MagicMock
 
-from gem_rag.database import Database
+from gem_rag.database import Database, ScoredChunk
 from gem_rag.retriever import Retriever, _merge_hits, _merge_spans, _Span
-from gem_rag.database import ScoredChunk
 
 
 def _seed_db(db: Database) -> None:

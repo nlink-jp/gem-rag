@@ -110,7 +110,8 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
 
     top_score = passages[0].score
     if top_score < 0.60:
-        err.print(f"[yellow]⚠ Low relevance (top score: {top_score:.3f}) — answer may not reflect the documents.[/yellow]")
+        warning = f"⚠ Low relevance (top score: {top_score:.3f}) — answer may not reflect the documents."
+        err.print(f"[yellow]{warning}[/yellow]")
 
     # Build nonce-tagged prompt
     all_text = question + "".join(p.content for p in passages)
@@ -133,8 +134,7 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
     )
 
     user_prompt = (
-        f"<context-{nonce}>\n{context_block}\n</context-{nonce}>\n\n"
-        f"<query-{nonce}>\n{question}\n</query-{nonce}>"
+        f"<context-{nonce}>\n{context_block}\n</context-{nonce}>\n\n<query-{nonce}>\n{question}\n</query-{nonce}>"
     )
 
     # Deduplicate sources by file path, keeping the highest score per file.
@@ -143,10 +143,7 @@ def ask(question: str, json_output: bool, project: str, db_path: str) -> None:
     if json_output:
         with err.status("[bold blue]Generating answer..."):
             answer = client.complete_text(system_prompt, user_prompt)
-        sources = [
-            {"file_path": fp, "heading_path": hp, "score": round(sc, 4)}
-            for fp, hp, sc in deduped_sources
-        ]
+        sources = [{"file_path": fp, "heading_path": hp, "score": round(sc, 4)} for fp, hp, sc in deduped_sources]
         click.echo(json.dumps({"answer": answer, "sources": sources}, ensure_ascii=False, indent=2))
     else:
         err.print("[bold]Answer:[/bold]\n")

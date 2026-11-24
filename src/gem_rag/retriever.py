@@ -64,10 +64,7 @@ class Retriever:
         # Parallel embedding and search for all query variants
         all_hits: list[ScoredChunk] = []
         with ThreadPoolExecutor(max_workers=len(queries)) as pool:
-            futures = {
-                pool.submit(self._embed_and_search, q): q
-                for q in queries
-            }
+            futures = {pool.submit(self._embed_and_search, q): q for q in queries}
             for future in as_completed(futures):
                 try:
                     hits = future.result()
@@ -104,13 +101,15 @@ class Retriever:
             for span in merged:
                 chunks = self._db.adjacent_chunks(doc_id, span.lo, span.hi)
                 content = "\n".join(c.content for c in chunks)
-                passages.append(Passage(
-                    content=content,
-                    score=span.score,
-                    heading_path=span.heading_path,
-                    file_path=span.file_path,
-                    document_id=doc_id,
-                ))
+                passages.append(
+                    Passage(
+                        content=content,
+                        score=span.score,
+                        heading_path=span.heading_path,
+                        file_path=span.file_path,
+                        document_id=doc_id,
+                    )
+                )
 
         passages.sort(key=lambda p: p.score, reverse=True)
         return passages

@@ -27,10 +27,7 @@ _INJECTION_PATTERNS: list[tuple[str, str]] = [
     (r"override\s+(previous|system|all)\s+(prompt|instructions?)?", "System override attempt"),
 ]
 
-_COMPILED_PATTERNS = [
-    (re.compile(pattern, re.IGNORECASE), description)
-    for pattern, description in _INJECTION_PATTERNS
-]
+_COMPILED_PATTERNS = [(re.compile(pattern, re.IGNORECASE), description) for pattern, description in _INJECTION_PATTERNS]
 
 
 @dataclass

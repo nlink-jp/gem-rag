@@ -86,9 +86,7 @@ class TestIndexCommand:
         f.write_text("# Test\nContent here.", encoding="utf-8")
         db_path = str(tmp_path / "test.db")
 
-        mock_config.return_value = MagicMock(
-            db_path=db_path, chunk_size=512, chunk_overlap=64, embedding_model="model"
-        )
+        mock_config.return_value = MagicMock(db_path=db_path, chunk_size=512, chunk_overlap=64, embedding_model="model")
         mock_embedder_cls.return_value.model_name = "model"
         mock_embedder_cls.return_value.embed.return_value = [[0.1, 0.2, 0.3]]
 

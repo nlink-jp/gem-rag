@@ -111,6 +111,7 @@ class TestGeminiEmbedder:
     @patch("gem_rag.llm.embedder.genai.Client")
     def test_embed_splits_into_batches(self, mock_cls: MagicMock) -> None:
         """Inputs exceeding 250 must be split into multiple API calls."""
+
         def make_response(**kwargs: object) -> MagicMock:
             contents = kwargs["contents"]
             resp = MagicMock()

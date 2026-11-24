@@ -62,12 +62,12 @@ def _is_cjk(ch: str) -> bool:
     """Check if a character is CJK (Han, Hiragana, Katakana)."""
     cp = ord(ch)
     return (
-        (0x4E00 <= cp <= 0x9FFF)        # CJK Unified Ideographs
-        or (0x3400 <= cp <= 0x4DBF)     # CJK Extension A
-        or (0x3040 <= cp <= 0x309F)     # Hiragana
-        or (0x30A0 <= cp <= 0x30FF)     # Katakana
-        or (0xF900 <= cp <= 0xFAFF)     # CJK Compatibility Ideographs
-        or (0x20000 <= cp <= 0x2A6DF)   # CJK Extension B
+        (0x4E00 <= cp <= 0x9FFF)  # CJK Unified Ideographs
+        or (0x3400 <= cp <= 0x4DBF)  # CJK Extension A
+        or (0x3040 <= cp <= 0x309F)  # Hiragana
+        or (0x30A0 <= cp <= 0x30FF)  # Katakana
+        or (0xF900 <= cp <= 0xFAFF)  # CJK Compatibility Ideographs
+        or (0x20000 <= cp <= 0x2A6DF)  # CJK Extension B
     )
 
 

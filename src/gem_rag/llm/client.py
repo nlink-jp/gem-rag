@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Iterator
-from typing import Any
 
 from google import genai
 from google.genai import types
@@ -71,8 +70,7 @@ class GeminiClient:
             except Exception as e:
                 error_str = str(e).lower()
                 is_retryable = any(
-                    keyword in error_str
-                    for keyword in ("429", "resource_exhausted", "rate limit", "quota")
+                    keyword in error_str for keyword in ("429", "resource_exhausted", "rate limit", "quota")
                 )
                 if not is_retryable or attempt == max_retries:
                     raise
@@ -80,7 +78,10 @@ class GeminiClient:
                 delay = base_delay * (2**attempt)
                 logger.warning(
                     "Gemini API rate limited (attempt %d/%d), retrying in %.1fs: %s",
-                    attempt + 1, max_retries + 1, delay, e,
+                    attempt + 1,
+                    max_retries + 1,
+                    delay,
+                    e,
                 )
                 time.sleep(delay)
 

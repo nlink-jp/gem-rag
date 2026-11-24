@@ -69,9 +69,7 @@ class Indexer:
             chunk_records.append((chunk_id, doc_id, chunk.index, chunk.heading_path, chunk.content, embedding))
 
         # Store
-        self._db.replace_document(
-            doc_id, file_path, file_hash, len(chunks), self._embedder.model_name, chunk_records
-        )
+        self._db.replace_document(doc_id, file_path, file_hash, len(chunks), self._embedder.model_name, chunk_records)
         logger.info("Indexed %s (%d chunks)", file_path, len(chunks))
         return True
 

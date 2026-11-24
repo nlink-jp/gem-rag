@@ -1,6 +1,6 @@
 """Tests for heading-aware markdown chunker."""
 
-from gem_rag.chunker import Chunk, Chunker, _split_by_headings
+from gem_rag.chunker import Chunker, _split_by_headings
 
 
 class TestSplitByHeadings:
