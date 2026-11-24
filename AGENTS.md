@@ -12,6 +12,6 @@ Gemini-powered RAG CLI for Markdown documents.
 - **Series**: util-series
 - **CLI**: `gem-rag index --dir <dir>`, `gem-rag ask <question>`, `gem-rag docs list/show/delete`, `gem-rag reindex`
 - **Build**: `uv build --out-dir dist/` via `make build`
-- **Test**: `uv run --extra dev pytest tests/ -v` via `make test`; lint with `make lint` (ruff check + format check + pyright)
+- **Test**: `uv run --extra dev pytest tests/ -v` via `make test`; lint with `make lint` (ruff check + format check + pyright); `make vuln` (uv audit, run before tagging)
 - **Module path**: `src/gem_rag/`
 - **Replaces**: lite-rag (Go + local LLM + CGO/DuckDB) — solves memory and Windows issues

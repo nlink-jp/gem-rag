@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   lint and format violations are cleared; `make lint` now passes.
 - `make lint` also runs pyright (configured in `pyproject.toml` but never
   run before); its existing errors are cleared.
+- `make vuln` runs `uv audit` on the lock and fails on a known advisory.
 
 ## [0.5.0] - 2026-11-24
 
