@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- The locked dependency versions are upgraded; `uv audit` reported 23 known
+  advisories in the previous lock, all in transitive packages (urllib3,
+  cryptography, pyasn1, anyio, certifi, idna, pydantic-settings, and pytest
+  in the dev extra). The new lock has none. This affects `uv sync` from the
+  repository; `uv tool install` already resolved current versions.
+
 ### Fixed
 
 - The embedder now rejects a response that does not carry exactly one
